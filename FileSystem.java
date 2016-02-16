@@ -13,10 +13,11 @@ class FileSystem
     {
       FileSystem obj=new FileSystem();
       String directory="";
-      System.out.println("Enter the directory to be accessed");
+      System.out.println("Enter the absolute path of directory to be accessed");
       directory=br.readLine();
       directory=directory.replace("\\", "\\\\");
       System.out.println("Enter 0 for caching all the files, or 1 for caching files only with .txt extension");
+      //extra choices can be introduced later to include caching (1) most visited files or (2) recently visited files.
       int choice=Integer.parseInt(br.readLine());
       
       Map cache=obj.createCache(directory, choice);
@@ -28,7 +29,7 @@ class FileSystem
            System.exit(0);
       }
       
-      System.out.println ("enter the path of the file to be accessed");
+      System.out.println ("Enter the absolute path of the file to be accessed");
       String filePath=br.readLine();
       filePath=filePath.replace("\\", "\\\\");
       
@@ -64,7 +65,7 @@ class FileSystem
           String data=br.readLine();
           fout.writeUTF(data);
           if (append) //1 if data is to be appended
-          cache.put(filePath,cache.get(filePath)+data);
+          cache.put(filePath,(String)cache.get(filePath)+data);
           else
           cache.put(filePath, data);
           
@@ -90,12 +91,18 @@ class FileSystem
       if(cachedData!=null) //cache entry is present for given file
       {
           String requiredContent=cachedData.substring(start,start+len);
-          System.out.println("Desired content from file"+requiredContent);
+          System.out.println("Desired content from file "+requiredContent);
       }
       else // cache doesn't has file entry
       {
-          String requiredContent=giveCompleteFileContent(filePath);
-          System.out.println("Desired content from file"+requiredContent);
+          String fileData=giveCompleteFileContent(filePath);
+          if (!fileData.equals(""))
+          {
+          String requiredContent=fileData.substring(start,start+len);
+          System.out.println("Desired content from file "+requiredContent);
+          }
+          else
+          System.out.println("Empty file at "+filePath );
       }
     }
     
@@ -109,19 +116,16 @@ class FileSystem
       FileInputStream fr=new FileInputStream(fileName);
       DataInputStream fin=new DataInputStream(fr);
       System.out.println("Output-->");
-       boolean eof = false;
-       while(!eof)
-       {
          content=fin.readUTF();
          System.out.println("content "+content);
-      }
-        eof = true;
-        fr.close();
-        fin.close();
+       fr.close();
+       fin.close();
        }
         catch(Exception e)
        {
        } 
+       if (content.length()>1000)
+       System.out.println("Memory Warning: "+fileName+" is a large file with size "+content.length());
        return content;
     }
     
@@ -130,7 +134,12 @@ class FileSystem
     public Map createCache(String directory, int choice)
     {
       File folder = new File(directory);
+      if (!folder.isAbsolute())
+      return null;
+      
       File[] listOfFiles = folder.listFiles();
+      
+      int cacheCount=0;
       Map cache = new HashMap();
       switch (choice)
       {
@@ -138,16 +147,30 @@ class FileSystem
           for (int i = 0; i < listOfFiles.length; i++) 
               if (listOfFiles[i].isFile()) 
               {
+                  if(cacheCount>10)
+                  {
+                       System.out.println("Memmory Error: More than 10 files cannot be maintained in cache");
+                       break;
+                  }
                   System.out.println("File " + listOfFiles[i].getName());
-                  cache.put(directory+"\\\\"+listOfFiles[i].getName(), giveCompleteFileContent(listOfFiles[i].getName()) );
+                  String filePath= listOfFiles[i].getAbsolutePath();
+                  cache.put(filePath, giveCompleteFileContent(filePath) );
+                  cacheCount++;
                 }
            break;
            case 1:
            for (int i = 0; i < listOfFiles.length; i++) 
-              if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".txt")) 
+              if (listOfFiles[i].isFile() && listOfFiles[i].getAbsolutePath().endsWith(".txt")) 
               {
+                  if(cacheCount>10)
+                  {
+                       System.out.println("Memmory Error: More than 10 files cannot be maintained in cache");
+                       break;
+                  }
                   System.out.println("File " + listOfFiles[i].getName());
-                  cache.put(directory+"\\\\"+listOfFiles[i].getName(), giveCompleteFileContent(listOfFiles[i].getName()) );
+                  String filePath= listOfFiles[i].getAbsolutePath();
+                  cache.put(filePath, giveCompleteFileContent(filePath) );
+                  cacheCount++;
                 }
            break;
         }

@@ -1,0 +1,12 @@
+#BlueJ class context
+comment0.params=args
+comment0.target=void\ main(java.lang.String[])
+comment1.params=filePath\ cache
+comment1.target=void\ writeFile(java.lang.String,\ java.util.Map)
+comment2.params=filePath\ cache
+comment2.target=void\ readFile(java.lang.String,\ java.util.Map)
+comment3.params=fileName
+comment3.target=java.lang.String\ giveCompleteFileContent(java.lang.String)
+comment4.params=directory\ choice
+comment4.target=java.util.Map\ createCache(java.lang.String,\ int)
+numComments=5
